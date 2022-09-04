@@ -7,7 +7,7 @@ import config
 
 api_key = config.api_key
 save_path = config.save_path
-#
+
 
 # stores playlist ID and corresponding playlist name
 playlist_names = {
@@ -24,12 +24,6 @@ playlist_names = {
     'PL_qgCkE-Zy21cNXiocycsJXiQsXwz3ElV': 'Atmospheric',
 
 }
-
-# list with the sorted saved playlists
-logs = sorted(os.listdir(save_path))
-
-
-# output = [json_output['items'][i]['snippet']['title'] for i in range(len(json_output['items']))]
 
 
 def get_request_url(playlist_id, page_token=''):
@@ -54,7 +48,9 @@ def add_playlist(playlist_name, playlist_id):
 
 def remove_playlist(playlist_id):
     """removes a playlist from the tracker"""
+    name = playlist_names[playlist_id]
     del playlist_names[playlist_id]
+    print(f'Playlist {name} (ID: {playlist_id}) has been removed')
 
 
 def list_playlists():
@@ -64,6 +60,7 @@ def list_playlists():
 
 
 def list_missing_songs(*playlists):
+    """lists all missing songs from the specified playlists, parameter 'all' lists all playlists"""
     print('\nAll missing songs:')
     if playlists[0] == 'all':
         for playlist in playlist_names.values():
@@ -83,25 +80,22 @@ def list_missing_songs(*playlists):
 
 def save_missing_songs(  # loop through each folder, create a file with the missing songs
         period=1):  # period should by default be 1 day but also with possibility to list all (coming soontm)
-    """compares previous log to the current one and lists the missing entires"""
-    for playlist in logs:
+    """goes through each playlist (folder) and compares the newest log to a past log and appends missing maps to the
+    "missing_songs" file """
+    for playlist in playlist_names.values():
         print(f'Searching for missing songs in {playlist}...')
         playlist_logs = sorted(os.listdir(f'{save_path}/{playlist}'))
         if 'missing_songs' in playlist_logs:
             playlist_logs.remove('missing_songs')
 
         with open(f'{save_path}/{playlist}/{playlist_logs[-1]}', 'rb') as file:
-            # current_playlist = file.read().split('\n')
-            # print(current_playlist)
             current_playlist = pickle.load(file)
 
         with open(f'{save_path}/{playlist}/{playlist_logs[-1 - period]}', 'rb') as file:
-            # past_playlist = file.read().split('\n')
             past_playlist = pickle.load(file)
 
         # append missing maps to the "missing_songs" file
         with open(f'{save_path}/{playlist}/missing_songs', 'a') as file:
-            # past_playlist = file.read().split('\n')
             new_missing_songs = [item for item in past_playlist if item not in current_playlist]
             if len(new_missing_songs) == 0:
                 print('No new missing songs found')
@@ -112,6 +106,9 @@ def save_missing_songs(  # loop through each folder, create a file with the miss
                     file.write('\n')
                     print(title)
 
+def remove_missing_songs(playlist, *song_name):
+    """removes missing song from the "missing_songs" file. This is used when a missing song has been readded to the playlist"""
+    pass
 
 def get_playlist_titles():
     for playlist_id in playlist_names.keys():
@@ -122,7 +119,7 @@ def get_playlist_titles():
 
             json_output = requests.get(get_request_url(playlist_id, nextPageToken)).json()
             video_titles = [(json_output['items'][i]['id'], json_output['items'][i]['snippet']['title']) for i in
-                            range(len(json_output['items']))]  # creates tuple (video_id, video_title)
+                            range(len(json_output['items']))]  # creates list of tuples (video_id, video_title)
 
             titles += video_titles
 
@@ -137,18 +134,14 @@ def get_playlist_titles():
 
 
 def save_playlist_to_file(playlist_content, playlist_id):
+    """creates a folder for each playlist and saves the playlist backup in there in a binary file"""
+
     # create folder for playlist, if it does not exist yet
     Path(f'{save_path}/{playlist_names[playlist_id]}').mkdir(parents=True, exist_ok=True)
     with open(
             f'{save_path}/{playlist_names[playlist_id]}/{playlist_names[playlist_id]} {datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")}',
             'wb') as file:
         pickle.dump(playlist_content, file)
-        # for item in playlist:
-        #     # write each item on a new line
-        #     pickle.dump(item, file)
-        #     # file.write(f'{id}, ')
-        #     # file.write(song_title)
-        #     # file.write('\n')
         print(f'Playlist "{playlist_names[playlist_id]}" saved.')
 
 
