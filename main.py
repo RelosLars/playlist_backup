@@ -7,13 +7,7 @@ import config
 
 api_key = config.api_key
 save_path = config.save_path
-
-tracked_playlists = ['PLIW5foipZqFH4oBVXEg2_BqvZgtQ_Vs5y', 'PL_qgCkE-Zy21qbjk0m07Tib0ZEPlzVJB-',
-                     'PL_qgCkE-Zy23Qr9GhBgaLapYxGH9_3wJZ', 'PL_qgCkE-Zy20ooB5RzH9W_WjNphRAJh3-',
-                     'PL_qgCkE-Zy2028u7v98qe5UGmfwtojMDS', 'PL_qgCkE-Zy21-6fuGBter-HqukdSLDQun',
-                     'PL_qgCkE-Zy20heQ4ntZxwNeRv3ve4u6Ef', 'PL_qgCkE-Zy22qDteav2_PoR1K9JwyRPTK',
-                     'PL_qgCkE-Zy22nG22ch-d7_i9G10i6bzvh', 'PL_qgCkE-Zy210S6f-EMbhgRHoOY7v047u',
-                     'PL_qgCkE-Zy21cNXiocycsJXiQsXwz3ElV']
+#
 
 # stores playlist ID and corresponding playlist name
 playlist_names = {
@@ -54,7 +48,6 @@ def validate_playlist(playlist_id):
 
 def add_playlist(playlist_name, playlist_id):
     """adds e playlist to the tracker"""
-    tracked_playlists.append(playlist_id)
     playlist_names[playlist_id] = playlist_name
     print(f'Playlist {playlist_name} successfully added to the tracker.')
 
@@ -121,7 +114,7 @@ def save_missing_songs(  # loop through each folder, create a file with the miss
 
 
 def get_playlist_titles():
-    for playlist_id in tracked_playlists:
+    for playlist_id in playlist_names.keys():
         titles = []
         nextPageToken = ''
 
@@ -162,11 +155,3 @@ def save_playlist_to_file(playlist_content, playlist_id):
 get_playlist_titles()
 save_missing_songs()
 list_missing_songs('all')
-
-
-class Playlist:
-    def __init__(self, playlist_id, playlist_name):
-        pass
-
-    def __str__(self):
-        pass
